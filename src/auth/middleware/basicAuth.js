@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 'use strict';
 // const User = require('./models/users-model').userModel;
 const UserFunctions = require('../models/users-model').userFunctions;
