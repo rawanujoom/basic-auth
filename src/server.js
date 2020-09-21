@@ -14,6 +14,6 @@ module.exports = {
     server: app,
     start: port => {
         let PORT = port || process.env.PORT || 3000;
-        app.listen(PORT, () => console.log(` Listining on ${PORT} `));
+        app.listen(PORT, () => console.log(` Listening on ... ${PORT} `));
     }
 }

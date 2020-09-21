@@ -1,14 +1,15 @@
 /* eslint-disable no-undef */
 'use strict';
-const User = require('./models/users-model').userModel;
-const UserFunctions = require('./models/users-model').userFunctions;
+
+const users = require('./models/users-schema');
+
 const basicAuth = require('./middleware/basicAuth')
 const express = require('express');
 const router = express.Router();
 
-router.post('/signup',signUpHandler);
-router.post('/signin',basicAuth,signInHandler);
-router.post('/users',basicAuth,getAllUsers);
+router.post('/signup', signUpHandler);
+router.post('/signin',basicAuth, signInHandler);
+router.get('/users',basicAuth, getAllUsers);
 
 /**
  * this function respons the token to the user if it is not exist
@@ -17,32 +18,30 @@ router.post('/users',basicAuth,getAllUsers);
  * @param {callBack} next 
  */
 function signUpHandler(req,res) {
-        // console.log('>>>>Result)',req.body);
-        User.get({userName : req.body.username}).then(result =>{
-        // console.log('>>>>Result)',result);
-        if(result.length > 0){
-            res.status(403).send('this user name already has as account');
-        }else{
-            User.create(req.body).then(result =>{
-                res.status(200).json(UserFunctions.generateToken(result.username));
-            }).catch(err =>{
-                console.log(err);
-                res.status(403).send("error !!");
-            })
-        }
+    // first check if the username exists then add it if not 
+    let user = new users(req.body);
+    // hash the password first
+    user.save().then((user)=> {
+        let token = users.generateToken(user.username);
+        res.status(201).send(token);
     });
 }
 
 function signInHandler(req,res) {
-    if(req.basicAuth){
+    if(req.basicAuth) {
+        // add the token as cookie 
+        res.cookie('token', req.basicAuth.token);
+        // add a header
+        res.set('token', req.basicAuth.token);
+        // send json object with token and user record
         res.status(200).json(req.basicAuth);
-    }else{
+    } else {
         res.status(403).send("invaled login");
     }
 }
 function getAllUsers(req,res){
     if(req.basicAuth.token){
-        User.get().then(result =>{
+        users.find().then(result =>{
             res.status(200).json(result);
         })
     }else{
